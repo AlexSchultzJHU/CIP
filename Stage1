@@ -1,0 +1,45 @@
+PreReq: 
+  Install Virtual Box https://www.virtualbox.org/wiki/Downloads
+  Download Ubuntu Server https://www.osboxes.org/ubuntu-server/#ubuntu-server-14-04-vbox
+  
+  Can unzip with 7zip: https://www.7-zip.org/
+  
+Setup Steps:
+  Open Virtual Box
+  Create New Machine
+    Name: ServerOne (Or equivalent )
+    Type: Linux
+    Verion: Ubuntu(32)
+  Use existing virtual hard disk -> Ubuntu Server .vdi from above
+  Create and Start machine
+  On statrtup
+    Advanced
+      Go to recovery mode
+        network
+          Enable -> yes
+        root
+          Drop to root
+            ($=Type on cmd line # is for comments)
+            $ sudo adduser serverone
+            #Follow steps, remember password
+            #Repeat for user servertwo and serverthr
+            $exi
+  Right Click machine Server1
+    Clone
+      Rename to Server 2
+      Mac Address Policy = Generate New Mac Address
+      Next, Linked Clone
+  Repeat for Server3
+  
+  In server1, settings
+    Network
+      Adapter2
+        Check Enable network Adapter2
+        Attach it to "Internal Network"
+        
+  Start Machines
+      
+  
+  
+  
+  
