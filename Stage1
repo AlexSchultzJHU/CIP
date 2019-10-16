@@ -21,6 +21,8 @@ Setup Steps:
           Drop to root
             ($=Type on cmd line # is for comments)
             $ sudo adduser serverone
+            $ sudo mount -o remount,rw /
+            $ sudo usermod -aG sudo serverone
             #Follow steps, remember password
             #Repeat for user servertwo and serverthr
             $exi
