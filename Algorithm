@@ -1,0 +1,35 @@
+The Foraging Algorithm Plan:
+
+Ants forage for food leaving pheremones to lead other ants to resources.
+
+The plan is to execute our search pattern of the 'Grey Space' by narrowing the  scope of discovery to be a.b.x.y. This will correspong to an ipaddress. a.b will be fixed. Users will supply ranges for x and y. The x,y plane will act like a plane of glass, in which our ants will leave a home base looking for other resources. 
+
+Psueudo code:
+A=10
+B=207
+
+def main( 0,256,0,256 )
+    Find this devices IP address.
+    
+    while true
+        examine surrounding box
+        Create Ant(s)
+        
+
+Ant Autonmomy:
+Obj: 
+    Thread that can search gray space, update The Grid with results. When caught, at end, cornered, etc die and restart at home.
+        
+        
+        
+The next step
+
+
+
+
+
+
+The GRID
+
+In order to store information, we will be creating a grid for each x,y co-ordinate with default values <0, False>. The tuple will contain  < ant phermone, devicePresent >
+In the future we may add another field containing results from the port scan.
