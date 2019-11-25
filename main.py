@@ -2,6 +2,8 @@ from arprequest import ArpRequest
 
 import netifaces as ni
 
+#Test for new pc
+
 def searchIP():
     ip = ni.ifaddresses('eth1')[2][0]['addr'].split(".")
     print(ip)
