@@ -13,6 +13,8 @@ from matplotlib.pyplot import imshow, show, colorbar
 import numpy as np
 import threading 
 
+import pylab as plt
+
 
 decSlice = None
 mySlice = None
@@ -43,9 +45,13 @@ def displayFormicariumSlice():
         time.sleep(1)
         i = i + 1
         
-        imshow( mySlice )
-        colorbar()
-        show()
+        #mshow( mySlice )
+        #olorbar()
+        #how()
+
+        im = plt.imshow(mySlice, cmap='hot')
+        plt.colorbar(im, orientation='horizontal')
+        plt.show()
 
         
         #rint("\nExamining at second: " + str( i) )
