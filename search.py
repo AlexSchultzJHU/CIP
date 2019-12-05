@@ -12,15 +12,12 @@ from matplotlib.pyplot import imshow, show, colorbar
 #import matplotlib.pyplot as plt
 import numpy as np
 import threading 
-
 import pylab as plt
-
 
 decSlice = None
 mySlice = None
 
 arraySize = 23
-
 
 def refreshFormicariumSlice():
     global mySlice
@@ -31,7 +28,6 @@ def refreshFormicariumSlice():
     #Add bounds
     mySlice[mySlice < 0] = 0
     mySlice[mySlice > 20] = 20
-
 
 
 def displayFormicariumSlice():
@@ -49,22 +45,14 @@ def displayFormicariumSlice():
         #olorbar()
         #how()
 
-        im = plt.imshow(mySlice, cmap='hot')
-        plt.colorbar(im, orientation='horizontal')
-        plt.show()
-
+        #im = plt.imshow(mySlice, cmap='hot')
+        #plt.colorbar(im, orientation='horizontal')
+        #plt.show()
         
-        #rint("\nExamining at second: " + str( i) )
-        #rint( mySlice )
-        #rint("\n")
+        print("\nExamining at second: " + str( i) )
+        print( mySlice )
+        print("\n")
     return True
-
-#    ctr = 0
-#    for i in mySlice:
-#        try:
-#            print( str(i) + " - " + str( mySlice[i] ) )
-#        except:
-#            pass
 
 def createFormicariumSlice(a,b):
     global mySlice
