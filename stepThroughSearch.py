@@ -42,7 +42,7 @@ def refreshFormicariumSlice():
 
     #Add bounds
     mySlice[mySlice < 0] = 0
-    mySlice[mySlice > 20] = 20
+    mySlice[mySlice > 99] = 99
 
 
 def displayDeviceSlice():
@@ -63,7 +63,7 @@ def createFormicariumSlice(a,b):
     deviceSlice = np.zeros( shape = ([arraySize, arraySize]) ) 
     
     deviceSlice[a][b] = 3
-    mySlice[a][b] = 10
+    mySlice[a][b] = 50
 
 def updateFormicariumSlice(a,b, value = 10, deviceFound = False ):
     global mySlice
@@ -175,6 +175,17 @@ def checkLocation( a,b ):
     #     print(ip,mac)
     #     print(str(len(active_ip_mac)))
 
+    #Seeded to simulate VM
+    if a == 2:
+        if b == 3:
+            return True
+        elif b == 4:
+            return True
+        elif b == 5:
+            return True
+
+
+
     #Random generation
     if a*b*7%13 == 1:
         return True
@@ -188,7 +199,7 @@ def antForagesRandom( a,b ):
     a = boundaryCheck( a + x )
     b = boundaryCheck( b + y )
     if checkLocation( a,b ):
-        updateFormicariumSlice(a,b, 10, True)
+        updateFormicariumSlice(a,b, 25, True)
     else:
         updateFormicariumSlice(a,b, 3, False )
     return a,b
@@ -201,7 +212,7 @@ def antForagesFollowPath( a,b):
     a = boundaryCheck( a + x )
     b = boundaryCheck( b + y )
     if checkLocation( a,b ):
-        updateFormicariumSlice(a,b, 10, True )
+        updateFormicariumSlice(a,b, 25, True )
     else:
         updateFormicariumSlice(a,b, 3, False )
     return a,b
