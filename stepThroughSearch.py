@@ -5,29 +5,22 @@ import time
 import random
 import socket
 import netifaces as ni
-import Queue
-
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib.pyplot import imshow, show, colorbar
+import queue
 
 import concurrent.futures
 
 
-#import matplotlib.pyplot as plt
 import numpy as np
 import threading 
-
-import pylab as plt
+import subprocess
 
 
 decSlice = None
 mySlice = None
 deviceSlice = None
 
-arraySize = 12
-
-maxScoutingAnts = 5
+arraySize = 16
+maxScoutingAnts = 7
 antScoutThreadArray = []
 antScoutPositionArray = []
 
@@ -156,44 +149,18 @@ def bestDirection( a,b ):
 
 #PortScan code placed here
 def checkLocation( a,b ):
-    #ip = ni.ifaddresses('eth1')[2][0]['addr'].split(".")
-    #x=ip[0]
-    #y=ip[1]
-    #
-    # myip = str(x) + "." + str(y) + "." + str(a) +"." + str(b)
-    # active_ip_mac=arp_scan(myip)
-    # queue=Queue()
-    # net=ipaddress.ip_network(network)
-    # for ip in net:
-    #     ip_addr=str(ip)
-    #     arp_one=Process(target=arprequest,args=(ip_addr,queue))
-    #     arp_one.start()
-    # time.sleep(2)
-    # ip_mac_list=[]
-    # while True:
-    #     if queue.empty():
-    #         break;
-    #     else:
-    #         ip,mac=queue.get()
-    #         ip_mac_list.append((ip,mac))
-    # 
-    # for ip,mac in active_ip_mac_list:
-    #     print(ip,mac)
-    #     print(str(len(active_ip_mac)))
-
-    #Random generation
-    
     myIP = str(x) + "." + str(y) + "." + str(a) + "." + str(b)
-    print(myIP)
     r = 1
-    try:
-        #r = os.system( "ping -c  1 " + myIP )
-        r = subprocess.run(  ["ping","-c","1", myIP ]).returncode
-    except:
-        r = 1
-    print(r)
+    #try:
+    #r = os.system( "ping -c  1 " + myIP )
+    r = subprocess.run(  ["ping","-c","1", myIP ]).returncode
+    #print( "success " +  str(ping) )
+    #print( "success " +  str(r) )
+    #except:
+    #    r = 1
     if r == 0:
-        print("Caught a pingable device: " + strmyIP)
+        #print("Caught a pingable device: " + str(myIP)
+        #print("Caught a pingable device: " + str(myIP)
         return True
     else:
         return False
@@ -227,16 +194,12 @@ def antForagesFollowPath( a,b):
 def createScoutingAnt( a,b, pos = -1, antScoutQueue = None, antLife = 255 ):
     currentA = a
     currentB = b
+   
     
     currentA,currentB = antForagesRandom( currentA,currentB )
    
-    try:
-        if pos == antScoutQueue.qsize():
-            return currentA,currentB
-    except:
-            return currentA,currentB
-            
-    if pos != -1:
+    
+    if pos != -1: 
         antScoutQueue.queue[pos] = ( [currentA, currentB] ) 
     
     return currentA,currentB
@@ -248,81 +211,122 @@ def createForagingAnt(  a,b, pos = -1, antForageQueue = None, antLife = 255 ):
     currentA,currentB = antForagesFollowPath( currentA,currentB )
 
 
-    try:
-        if pos != -1 and pos < maxForagingAnts:
-            antForageQueue.queue[pos] = ( [currentA, currentB] ) 
-    except:
-            pass
+    #try:
+    if pos != -1 and pos < maxForagingAnts:
+        antForageQueue.queue[pos] = ( [currentA, currentB] ) 
+    #except:
+    #        pass
     return currentA,currentB
 
-def stepAnts():
-    antScoutQueue = Queue.Queue( maxScoutingAnts + 1 )
-    antScoutQueue.put(1)
-    for i in range( 0, maxScoutingAnts  ):
-        antScoutQueue.put(1)
-        a,b = antScoutPositionArray[i] 
-        antScoutThread = threading.Thread( target = lambda myArg1, myArg2, pos, myAntScoutQueue:  createScoutingAnt( myArg1,myArg2, pos, myAntScoutQueue ) , args = ( a,b, i, antScoutQueue ) )
-        antScoutThread.start()
+
+
+def stepGeneric( maxAnts, antPositionArray, antThreadArray, createAnt ):
+    antQueue = queue.Queue( maxAnts + 1 )
+    antQueue.put(1)
+    for i in range( 0, maxAnts   ):
+        #print(i)
+        antQueue.put(1)
+        a,b = antPositionArray[i] 
+        antThread = threading.Thread( target = lambda myArg1, myArg2, pos, myAntQueue:  createAnt( myArg1,myArg2, pos, myAntQueue ) , args = ( a,b, i, antQueue ) )
+        antThread.start()
+        antThreadArray.append( antThread )
     
-    for ant in antScoutThreadArray:
+    for ant in antThreadArray:
         ant.join()
    
-    pos = 0
     try:
-        #w#hile(True):
-        for pos in maxScoutingAnts:
-                #if pos >= maxScoutingAnts:
-                #    break
-                myPos = antScoutQueue.get()
-                if type( myPos ) == int:
-                    break
-                if myPos == None:
-                    break
-                a = myPos[0]
-                b = myPos[1]
-                antScoutPositionArray[pos] = [ a,b ]
-                #pos = pos + 1
-
-    except:
+        for pos in range( maxAnts ) :
+            myPos = antQueue.get()
+            #print("testMyPos")
+            if type( myPos ) == int:
+                break
+            if myPos == None:
+                break
+            #print("testMyPos done")
+            a = myPos[0]
+            #print("testMyPos[a] - " + str(a) )
+            b = myPos[1]
+            antPositionArray[pos] = [ a,b ]
+    except: 
+        #print("excepption at generic ants")
         pass
 
-    antForageQueue = Queue.Queue( maxForagingAnts + 1 )
-    antForageQueue.put(1)
-    for i in range( 0, maxForagingAnts ):
-        antForageQueue.put(1)
-        a,b = antForagePositionArray[i]
-        print(a)
-        print(b)
-        print(i)
 
-        antForageThread = threading.Thread( target = lambda myArg1, myArg2, pos, antForageQueue:  createForagingAnt( myArg1,myArg2, pos, antForageQueue ) , args = ( a,b, i, antForageQueue ) )
-        antForageThread.start()
-    
-    for ant in antForageThreadArray:
-        ant.join()
-  
-    try:
-        for pos in range( maxForagingAnts) :
-        #pos = 0
-        #while(True):
-                #if pos >= maxForagingAnts:
-                #    return
-                myPos = antForageQueue.get()
-                if myPos is None:
-                    return
-                a = myPos[0]
-                b = myPos[1]
-                antForagePositionArray[pos] = [ a,b ]
-                pos = pos + 1
-    except:
-            pass
-    return
 
+
+
+def stepAnts():
+
+    stepGeneric( maxScoutingAnts, antScoutPositionArray, antScoutThreadArray, createScoutingAnt )
+#    
+#    antScoutQueue = queue.Queue( maxScoutingAnts + 1 )
+#    antScoutQueue.put(1)
+#    for i in range( 0, maxScoutingAnts  ):
+#        antScoutQueue.put(1)
+#        a,b = antScoutPositionArray[i] 
+#        antScoutThread = threading.Thread( target = lambda myArg1, myArg2, pos, myAntScoutQueue:  createScoutingAnt( myArg1,myArg2, pos, myAntScoutQueue ) , args = ( a,b, i, antScoutQueue ) )
+#        antScoutThread.start()
+#    
+#    for ant in antScoutThreadArray:
+#        ant.join()
+#   
+#    pos = 0
+#    try:
+#        #w#hile(True):
+#        for pos in maxScoutingAnts:
+#                #if pos >= maxScoutingAnts:
+#                #    break
+#                myPos = antScoutQueue.get()
+#                if type( myPos ) == int:
+#                    break
+#                if myPos == None:
+#                    break
+#                a = myPos[0]
+#                b = myPos[1]
+#                antScoutPositionArray[pos] = [ a,b ]
+#                #pos = pos + 1
+#
+#    except:
+#        pass
+#
+#    antForageQueue = queue.Queue( maxForagingAnts + 1 )
+#    antForageQueue.put(1)
+#    for i in range( 0, maxForagingAnts ):
+#        antForageQueue.put(1)
+#        a,b = antForagePositionArray[i]
+#        print(a)
+#        print(b)
+#        print(i)
+#
+#        antForageThread = threading.Thread( target = lambda myArg1, myArg2, pos, antForageQueue:  createForagingAnt( myArg1,myArg2, pos, antForageQueue ) , args = ( a,b, i, antForageQueue ) )
+#        antForageThread.start()
+#    
+#    for ant in antForageThreadArray:
+#        ant.join()
+#  
+#    try:
+#        for pos in range( maxForagingAnts) :
+#        #pos = 0
+#        #while(True):
+#                #if pos >= maxForagingAnts:
+#                #    return
+#                myPos = antForageQueue.get()
+#                if myPos is None:
+#                    return
+#                a = myPos[0]
+#                b = myPos[1]
+#                antForagePositionArray[pos] = [ a,b ]
+#                pos = pos + 1
+#    except:
+#            pass
+#    return
+#
 def initializeAnts(a,b):
     global maxScoutingAnts 
     global antScoutThreadArray 
     global antScoutPositionArray 
     
+#        antScoutQueue.put(1)
     for i in range( 0, maxScoutingAnts  ):
         antScoutPositionArray.append(  [a,b] )
         antScoutThread = threading.Thread( target = createScoutingAnt, args = (a,b, -1, None) )
@@ -357,11 +361,11 @@ def stepThrough(a,b):
     print("Else, step through next phase of ants." )
 
  
-    intExit = 100
+    intExit = 400
     boolExit = True
     while boolExit:
         intExit = intExit - 1
-        myInput = raw_input("Next step? Press enter or 'N/n' : ") 
+        myInput = input("Next step? Press enter or 'N/n' : \n") 
         if myInput == 'N' or  myInput == 'n':
             boolExit = False
         #if D/d displayFormic
@@ -381,17 +385,12 @@ def main():
     global x
     global y
 
-    ip = ni.ifaddresses('eth1')[2][0]['addr'].split(".")
-    print(ip)
-    x=ip[0]
-    y=ip[1]
-    #a=ip[2]
-    #b=ip[3]
+    ip = ni.ifaddresses('enp0s3')[2][0]['addr'].split(".")
+    x=int(ip[0])
+    y=int(ip[1])
+    a=int(ip[2])
+    b=int(ip[3])
     
-    # For algorithm
-    a=3
-    b=3
-
     createFormicariumSlice(a,b)
     initializeAnts( a,b )
     stepThrough( a,b)
