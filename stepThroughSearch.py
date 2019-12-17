@@ -1,4 +1,14 @@
 
+'''
+   #!/usr/bin/python
+   # -*- coding: utf-8 -*-
+   '''
+import sys
+from socket import *
+import time
+
+
+
 
 import os
 import time
@@ -20,14 +30,16 @@ mySlice = None
 deviceSlice = None
 
 arraySize = 16
-maxScoutingAnts = 7
+maxScoutingAnts = 5
 antScoutThreadArray = []
 antScoutPositionArray = []
 
 maxForagingAnts = 5
 antForageThreadArray = []
 antForagePositionArray = []
- 
+
+portScanDict = {}
+
 x=0
 y=0
 
@@ -41,6 +53,11 @@ def refreshFormicariumSlice():
     mySlice[mySlice < 0] = 0
     mySlice[mySlice > 99] = 99
 
+def displayReports():
+    print("AntMapper Report:")
+    for i in portScanDict:
+        if portScanDict[i]:
+            print( str(i) + " - " + str( portScanDict[i] ))
 
 def displayDeviceSlice():
     print( deviceSlice )
@@ -147,24 +164,71 @@ def bestDirection( a,b ):
 
     return x,y
 
+
+
 #PortScan code placed here
 def checkLocation( a,b ):
-    myIP = str(x) + "." + str(y) + "." + str(a) + "." + str(b)
-    r = 1
-    #try:
-    #r = os.system( "ping -c  1 " + myIP )
-    r = subprocess.run(  ["ping","-c","1", myIP ]).returncode
-    #print( "success " +  str(ping) )
-    #print( "success " +  str(r) )
-    #except:
-    #    r = 1
-    if r == 0:
-        #print("Caught a pingable device: " + str(myIP)
-        #print("Caught a pingable device: " + str(myIP)
-        return True
-    else:
+    i = str(x) + "." + str(y) + "." + str(a) + "." + str(b)
+
+
+    #r = subprocess.call(  ["ping","-c", "3", i ], stdout=open(os.devnull )  )
+    #r = subprocess.run(  ["arp", "-a", i ]  )
+    
+    r = subprocess.check_output(  ["arp", "-a", i ]  )
+    #r = subprocess.call(  ["ping","-c", "3", i ], stdout=open(os.devnull )  )
+    print("Line: " + str(r ) )
+    print("Line: " + str(r )[2:5] )
+    if str(r)[2:5] == 'arp' :
+        print( "Caught bad arp" )
         return False
 
+    defRet = False
+
+    target_ip = socket.gethostbyname(i)
+    start_port = 50
+    end_port = 80
+ 
+    #the list to record open ports
+    opened_ports = []
+    connect_suc = "False"
+    bConnect = False
+ 
+    for port in range(start_port, end_port):
+        sock = socket.socket(AF_INET, SOCK_DGRAM)
+        sock.settimeout(3000)
+        result = sock.connect_ex((target_ip, port))
+        #print( str(target_ip) + " " + str(port) + " " + str(result))
+        #result = 1 means this port is open?
+        if result == 0:
+            opened_ports.append(port)
+            defRet = True
+        sock.close() 
+        
+        #connect_suc = "True"
+        #bConnect = True
+ 
+#    #Create/Send report
+
+
+    portScanDict[i] = opened_ports
+#    print("whether it can access to", i,": ",connect_suc)
+#   # print("\nOpened ports:",opened_ports)
+# 
+# 
+#    return bConnect
+#    # for i in opened_ports:
+#   # print(i)
+    return defRet
+
+def testPortScan():
+    global x
+    global y
+    x = 10
+    y = 0
+    
+    checkLocation( 3,9 )
+  #  checkLocation( 3,19 )
+    
 def antForagesRandom( a,b ):
     #Start = a,b
     #Anyt Life is 
@@ -258,6 +322,7 @@ def stepGeneric( maxAnts, antPositionArray, antThreadArray, createAnt ):
 def stepAnts():
 
     stepGeneric( maxScoutingAnts, antScoutPositionArray, antScoutThreadArray, createScoutingAnt )
+    stepGeneric( maxForagingAnts, antForagePositionArray, antForageThreadArray, createForagingAnt )
 #    
 #    antScoutQueue = queue.Queue( maxScoutingAnts + 1 )
 #    antScoutQueue.put(1)
@@ -356,9 +421,11 @@ def initializeAnts(a,b):
 
 def stepThrough(a,b):
     print("Options:")
-    print("P/p = display Ant phermones.")
-    print("D/d = display devices found." )
-    print("Else, step through next phase of ants." )
+    print("P/p = display Ant phermones in grid.")
+    print("D/d = display devices found in grid." )
+    print("R/r = display report." )
+    print("N/n = exit." )
+    print("Else, any input to step through next phase of ants." )
 
  
     intExit = 400
@@ -373,6 +440,10 @@ def stepThrough(a,b):
             displayFormicariumSlice()
         elif myInput == 'D' or  myInput == 'd':
             displayDeviceSlice()
+        elif myInput == 'R' or  myInput == 'r':
+        
+            displayReports()
+        
         else:
             stepAnts()
 
@@ -391,7 +462,9 @@ def main():
     a=int(ip[2])
     b=int(ip[3])
     
+    print("Create formicarium slice:")
     createFormicariumSlice(a,b)
+    print("Initialize ants:")
     initializeAnts( a,b )
     stepThrough( a,b)
 
@@ -399,5 +472,6 @@ def main():
 
 main()
 
+#testPortScan()
 
 
